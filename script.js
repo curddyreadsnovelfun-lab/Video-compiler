@@ -8,7 +8,7 @@ const view = $("view"), vctx = view.getContext("2d");
 const fmt = s => Number.isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* ---------- audio: every cell goes through a gain node so mute and export work ---------- */
+/* audio etc etc cells etc etc */
 function audio() {
   if (!AC) {
     AC = new AudioContext(); master = AC.createGain(); master.connect(AC.destination);
@@ -17,7 +17,7 @@ function audio() {
   if (AC.state === "suspended") AC.resume();
 }
 
-/* ---------- sources and cells ---------- */
+/* source and shit */
 function newSrc(file) {
   const src = { name: file.name, url: URL.createObjectURL(file), thumb: "" };
   const v = document.createElement("video");
@@ -60,7 +60,7 @@ function remove(c) {
   S.cells.splice(S.cells.indexOf(c), 1); release(c.src); sync();
 }
 
-/* ---------- layout ---------- */
+/*layout- */
 function layout() {
   if (!S.auto) return { cols: S.cols, rows: S.rows };
   const cols = Math.max(1, Math.ceil(Math.sqrt(S.cells.length)));
@@ -73,7 +73,7 @@ function total() {
   return S.dmode === "shortest" ? Math.min(...d) : Math.max(...d);
 }
 
-/* ---------- drawing (same function for preview and export) ---------- */
+/* preview warning hella laggy */
 function draw(ctx, w, h) {
   ctx.fillStyle = S.bg; ctx.fillRect(0, 0, w, h);
   const { cols, rows } = layout(), gap = S.gap * w / S.W;
@@ -93,7 +93,7 @@ function sizePreview() {
   view.style.aspectRatio = S.W + "/" + S.H;
 }
 
-/* ---------- playback ---------- */
+/* play- */
 function play() { audio(); S.playing = true; S.clock = performance.now() - S.el * 1000; S.cells.forEach(c => c.v.play().catch(() => {})); $("play").textContent = "Pause"; }
 function pause() { S.playing = false; S.cells.forEach(c => c.v.pause()); $("play").textContent = "Play"; }
 function restart() {
@@ -110,7 +110,7 @@ function tick() {
   requestAnimationFrame(tick);
 }
 
-/* ---------- UI ---------- */
+/* UI */
 function renderList() {
   $("list").innerHTML = S.cells.map((c, i) => `
     <div class="card">
@@ -176,7 +176,7 @@ $("dupAll").onclick = () => {
   if (!S.cells.length) return;
   const L = layout(), out = [];
   if (L.rows <= 1) { out.push(...S.cells, ...S.cells.map(clone)); }
-  else {  // repeat each row sideways: A B / C D  ->  A B A B / C D C D
+  else {  // REPEAT
     for (let i = 0; i < S.cells.length; i += L.cols) { const r = S.cells.slice(i, i + L.cols); out.push(...r, ...r.map(clone)); }
     S.auto = false; $("auto").checked = false; S.cols = L.cols * 2; S.rows = L.rows;
     $("cols").value = S.cols; $("rows").value = S.rows;
@@ -202,7 +202,7 @@ $("res").onchange = e => { [S.W, S.H] = e.target.value.split("x").map(Number); s
 $("dmode").onchange = e => { S.dmode = e.target.value; updateInfo(); };
 $("custom").oninput = e => { S.custom = Math.max(1, +e.target.value || 1); updateInfo(); };
 
-/* ---------- export: records the composed canvas + mixed audio in real time ---------- */
+/* SAVE */
 $("cancel").onclick = () => S.cancel = true;
 $("export").onclick = async () => {
   if (!S.cells.length || S.exporting) return;
